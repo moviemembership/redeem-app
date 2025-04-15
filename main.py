@@ -8,8 +8,8 @@ import os
 app = Flask(__name__)
 
 IMAP_HOST = "mail.mantapnet.com"
-ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
-ADMIN_PASS = os.environ.get("ADMIN_PASS")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_PASS = os.getenv("ADMIN_PASS")
 
 HTML_FORM = """
 <!DOCTYPE html>
