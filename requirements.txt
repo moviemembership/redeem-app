@@ -1,0 +1,3 @@
+flask
+imapclient
+beautifulsoup4
