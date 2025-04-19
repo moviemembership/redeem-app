@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, url_for
+from flask import Flask, request, render_template_string
 from datetime import datetime, timedelta
 import imaplib
 import email
@@ -6,6 +6,7 @@ import re
 import os
 import requests
 from bs4 import BeautifulSoup
+from flask import redirect
 
 app = Flask(__name__)
 
@@ -94,9 +95,9 @@ HTML_FORM = """
       <input type="email" name="email" placeholder="example@mantapnet.com" required>
       <input type="submit" value="Redeem Code">
 
-      <!-- Loading Spinner -->
+    <!-- Loading Spinner -->
       <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
-        <img src="{{ url_for('static', filename='spinner.gif') }}" alt="Loading..." width="50">
+        <img src="/loading.gif" alt="Loading..." width="50">
         <p>Fetching your access code...</p>
       </div>
     </form>
@@ -113,8 +114,12 @@ HTML_FORM = """
     <h3>How to use:</h3>
     <ol>
       Before redeeming the code, make sure you had done the steps<br><br>
-      <img src="https://asset.kompas.com/crops/uB_vocYRDcjA8zFO_WKAsNrbhJM=/0x0:1620x1080/750x500/data/photo/2024/05/07/663a043ff39df.jpg">
-      <img src="https://asset.kompas.com/crops/uB_vocYRDcjA8zFO_WKAsNrbhJM=/0x0:1620x1080/750x500/data/photo/2024/05/07/663a043ff39df.jpg">
+      <table>
+    <tr>
+      <td><img src="/tv.png" width="400" height="300"></td>
+      <td><img src="/fon.png" width="400"></td>
+    </tr>
+  </table>
       <li>Make sure you clicked send email like above.</li>
       <li>Enter your <strong>@mantapnet.com</strong> email above.</li>
       <li>Click <strong>Redeem Code</strong>.</li>
@@ -130,9 +135,25 @@ HTML_FORM = """
       loading.style.display = "block";
     });
   </script>
+  
 </body>
 </html>
 """
+
+@app.route("/fon.png")
+def fon_link():
+  external_url = "https://github.com/moviemembership/redeem-app/blob/485881a153a2ebc785e524b94f5a7d9fe232b157/fon.png?raw=true"
+  return redirect(external_url)
+
+@app.route("/tv.png")
+def tv_link():
+  external_url = "https://github.com/moviemembership/redeem-app/blob/main/tv.png?raw=true"
+  return redirect(external_url)
+
+@app.route("/loading.gif")
+def loading_link():
+  external_url = "https://github.com/moviemembership/redeem-app/blob/main/Loading_icon.gif?raw=true"
+  return redirect(external_url)
 
 @app.route("/", methods=["GET", "POST"])
 def redeem():
@@ -213,7 +234,7 @@ def extract_code_from_verification_link(url):
         soup = BeautifulSoup(res.text, "html.parser")
 
         if soup.find("div", class_="title", string="This link is no longer valid"):
-            return None, "This code has expired. Please re-request on the original device. Make sure you have done the steps below and redeem it within 15 minutes."
+            return None, "This code has expired. Please re-request on the original device. Please Make sure you have done the steps below and redeem it within 15 minutes."
 
         code_div = soup.find("div", {"data-uia": "travel-verification-otp"})
         if code_div:
