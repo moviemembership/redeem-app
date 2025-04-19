@@ -1,15 +1,17 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, url_for
 from datetime import datetime, timedelta
 import imaplib
 import email
 import re
 import os
+import requests
+from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
 IMAP_HOST = "mail.mantapnet.com"
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-ADMIN_PASS = os.getenv("ADMIN_PASS")
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL")
+ADMIN_PASS = os.environ.get("ADMIN_PASS")
 
 HTML_FORM = """
 <!DOCTYPE html>
@@ -70,64 +72,71 @@ HTML_FORM = """
       background-color: #45a049;
     }
 
-    .link-area {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    .link-area a {
-      text-decoration: none;
-    }
-
-    .link-area button {
-      background-color: #2196F3;
-      border: none;
-      color: white;
-      padding: 14px 28px;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .link-area button:hover {
-      background-color: #0b7dda;
-    }
-
     .error {
       color: red;
       text-align: center;
       margin-top: 20px;
+    }
+
+    .code-display {
+      font-size: 36px;
+      color: green;
+      margin: 20px auto;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Redeem Your Temporary Code</h2>
-    <form method="POST">
+    <form method="POST" id="redeem-form">
       <label for="email">Enter your email address:</label>
       <input type="email" name="email" placeholder="example@mantapnet.com" required>
       <input type="submit" value="Redeem Code">
+
+      <!-- Loading Spinner -->
+      <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
+        <img src="{{ url_for('static', filename='spinner.gif') }}" alt="Loading..." width="50">
+        <p>Fetching your access code...</p>
+      </div>
     </form>
 
-    {% if link %}
-    <div class="link-area">
-      <p><strong>Your Access Link:</strong></p>
-      <a href="{{ link }}" target="_blank">
-        <button>Open Access Link</button>
-      </a>
-    </div>
+    {% if code %}
+      <p><strong>Your temporary access code:</strong></p>
+      <div class="code-display">{{ code }}</div>
     {% elif error %}
-    <div class="error">{{ error }}</div>
+      <div class="error">{{ error }}</div>
     {% endif %}
   </div>
+
+  <div class="instructions">
+    <h3>How to use:</h3>
+    <ol>
+      Before redeeming the code, make sure you had done the steps<br><br>
+      <img src="https://asset.kompas.com/crops/uB_vocYRDcjA8zFO_WKAsNrbhJM=/0x0:1620x1080/750x500/data/photo/2024/05/07/663a043ff39df.jpg">
+      <img src="https://asset.kompas.com/crops/uB_vocYRDcjA8zFO_WKAsNrbhJM=/0x0:1620x1080/750x500/data/photo/2024/05/07/663a043ff39df.jpg">
+      <li>Make sure you clicked send email like above.</li>
+      <li>Enter your <strong>@mantapnet.com</strong> email above.</li>
+      <li>Click <strong>Redeem Code</strong>.</li>
+      <li>Wait a few seconds while we fetch your access email.</li>
+    </ol>
+  </div>
+
+  <script>
+    const form = document.getElementById("redeem-form");
+    const loading = document.getElementById("loading");
+
+    form.addEventListener("submit", function () {
+      loading.style.display = "block";
+    });
+  </script>
 </body>
 </html>
 """
 
-
 @app.route("/", methods=["GET", "POST"])
 def redeem():
-    link = None
+    code = None
     error = None
 
     if request.method == "POST":
@@ -138,10 +147,7 @@ def redeem():
             mail.login(ADMIN_EMAIL, ADMIN_PASS)
             mail.select("inbox")
 
-            # Get yesterday's date in IMAP format (e.g., 13-Apr-2025)
             yesterday = (datetime.now() - timedelta(days=1)).strftime("%d-%b-%Y")
-
-            # Only get emails since yesterday and with matching subject
             status, messages = mail.search(None, f'(SINCE {yesterday} SUBJECT "Temporary Access Code")')
 
             if messages[0]:
@@ -153,76 +159,70 @@ def redeem():
                     raw_email = msg_data[0][1]
                     msg = email.message_from_bytes(raw_email)
 
-                    # Get the message body
-                    body = ""
-                    if msg.is_multipart():
-                        for part in msg.walk():
-                            content_type = part.get_content_type()
-                            content_dispo = str(part.get("Content-Disposition"))
+                    body = extract_email_body(msg)
 
-                            if content_type in ["text/plain", "text/html"] and "attachment" not in content_dispo:
-                                payload = part.get_payload(decode=True)
-                                if isinstance(payload, bytes):
-                                    body = payload.decode(errors="ignore")
-                                else:
-                                    body = str(payload)
-                                break
-                    else:
-                        payload = msg.get_payload(decode=True)
-                        if isinstance(payload, bytes):
-                            body = payload.decode(errors="ignore")
-                        else:
-                            body = str(payload)
-
-                    # Check if email contains user email
                     if user_email in body:
                         matched_email_id = msg_id
                         break
 
                 if matched_email_id:
-                    # Re-fetch and extract link
                     status, msg_data = mail.fetch(matched_email_id, "(RFC822)")
                     raw_email = msg_data[0][1]
                     msg = email.message_from_bytes(raw_email)
+                    body = extract_email_body(msg)
 
-                    body = ""
-                    if msg.is_multipart():
-                        for part in msg.walk():
-                            content_type = part.get_content_type()
-                            content_dispo = str(part.get("Content-Disposition"))
-
-                            if content_type in ["text/plain", "text/html"] and "attachment" not in content_dispo:
-                                payload = part.get_payload(decode=True)
-                                if isinstance(payload, bytes):
-                                    body = payload.decode(errors="ignore")
-                                else:
-                                    body = str(payload)
-                                break
-                    else:
-                        payload = msg.get_payload(decode=True)
-                        if isinstance(payload, bytes):
-                            body = payload.decode(errors="ignore")
-                        else:
-                            body = str(payload)
-
-                    # Extract first URL
                     match = re.search(r'https?://[^\s"<>\]]+', body)
                     link = match.group(0) if match else None
 
-                    if not link:
+                    if link:
+                        code, status_msg = extract_code_from_verification_link(link)
+                        if status_msg:
+                            error = status_msg
+                    else:
                         error = "No link found in the email."
                 else:
                     error = "No matching email found for that address."
             else:
-                error = "No emails with subject 'Temporary Access Code' found."
+                error = "No recent emails with subject 'Temporary Access Code' found."
 
             mail.logout()
 
         except Exception as e:
             error = f"Error: {str(e)}"
 
-    return render_template_string(HTML_FORM, link=link, error=error)
+    return render_template_string(HTML_FORM, code=code, error=error)
+
+def extract_email_body(msg):
+    try:
+        if msg.is_multipart():
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                if content_type in ["text/plain", "text/html"]:
+                    payload = part.get_payload(decode=True)
+                    return payload.decode(errors="ignore") if isinstance(payload, bytes) else str(payload)
+        else:
+            payload = msg.get_payload(decode=True)
+            return payload.decode(errors="ignore") if isinstance(payload, bytes) else str(payload)
+    except Exception:
+        return ""
+
+def extract_code_from_verification_link(url):
+    try:
+        headers = {"User-Agent": "Mozilla/5.0"}
+        res = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(res.text, "html.parser")
+
+        if soup.find("div", class_="title", string="This link is no longer valid"):
+            return None, "This code has expired. Please re-request on the original device. Make sure you have done the steps below and redeem it within 15 minutes."
+
+        code_div = soup.find("div", {"data-uia": "travel-verification-otp"})
+        if code_div:
+            return code_div.text.strip(), None
+        else:
+            return None, "Unable to fetch code. Please contact customer support."
+    except Exception as e:
+        print("Error while extracting code:", e)
+        return None, "Unable to access the verification link. Try again later."
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
-
+    app.run(host="0.0.0.0", port=8080)
