@@ -120,6 +120,8 @@ HTML_FORM = """
       <td><img src="/fon.png" width="400"></td>
     </tr>
   </table>
+      For TV : Click [I'm Travelling/Saya Sedang memgembara] Button then click [Send Email] Button.
+      For Computer/Phone : Click [Watch Temporary]Button then click [Send Email] Button.
       <li>Make sure you clicked send email like above.</li>
       <li>Enter your <strong>@mantapnet.com</strong> email above.</li>
       <li>Click <strong>Redeem Code</strong>.</li>
@@ -169,10 +171,12 @@ def redeem():
             mail.select("inbox")
 
             yesterday = (datetime.now() - timedelta(days=1)).strftime("%d-%b-%Y")
-            status, messages = mail.search(None, f'(SINCE {yesterday} SUBJECT "Temporary Access Code")')
+            status, messages_temp = mail.search(None, f'(SINCE {yesterday} SUBJECT "Temporary Access Code")')
+            status, messages_kod = mail.search(None, f'(SINCE {yesterday} SUBJECT "Kod akses sementara")')
 
-            if messages[0]:
-                message_ids = messages[0].split()
+            message_ids = messages_temp[0].split() + messages_kod[0].split()
+
+            if message_ids:
                 matched_email_id = None
 
                 for msg_id in reversed(message_ids):
@@ -240,7 +244,7 @@ def extract_code_from_verification_link(url):
         if code_div:
             return code_div.text.strip(), None
         else:
-            return None, "Unable to fetch code. Please contact customer support."
+            return None, "Unable to fetch code. Please Make Sure You Redeem It within 15 minutes. Contact customer support for more information."
     except Exception as e:
         print("Error while extracting code:", e)
         return None, "Unable to access the verification link. Try again later."
