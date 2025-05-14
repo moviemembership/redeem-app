@@ -120,8 +120,8 @@ HTML_FORM = """
       <td><img src="/fon.png" width="400"></td>
     </tr>
   </table>
-      For TV : Click [I'm Travelling/Saya Sedang memgembara] Button then click [Send Email] Button./n
-      For Computer/Phone : Click [Watch Temporary]Button then click [Send Email] Button.
+      For TV : Click <b>[I'm Travelling/Saya Sedang memgembara]</b> Button then click <b>[Send Email]</b> Button.<br>
+      For Computer/Phone : Click <b>[Watch Temporary]</b> Button then click <b>[Send Email]</b> Button.
       <li>Make sure you clicked send email like above.</li>
       <li>Enter your <strong>@mantapnet.com</strong> email above.</li>
       <li>Click <strong>Redeem Code</strong>.</li>
