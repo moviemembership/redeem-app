@@ -101,7 +101,9 @@ HTML_FORM = """
         <p>Fetching your access code...</p>
       </div>
     </form>
-
+    {% if email %}
+  <p style="text-align:center;">Email entered: <strong>{{ email }}</strong></p>
+{% endif %}
     {% if code %}
       <p><strong>Your temporary access code:</strong></p>
       <div class="code-display">{{ code }}</div>
@@ -215,7 +217,7 @@ def redeem():
         except Exception as e:
             error = f"Error: {str(e)}"
 
-    return render_template_string(HTML_FORM, code=code, error=error)
+    return render_template_string(HTML_FORM, code=code, error=error, email=user_email if request.method == "POST" else "")
 
 def extract_email_body(msg):
     try:
