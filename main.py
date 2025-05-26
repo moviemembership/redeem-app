@@ -30,82 +30,89 @@ HTML_FORM = """
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #43a047, #66bb6a);
-      color: #fff;
-      min-height: 100vh;
+      background-color: #f4f7f6;
+      color: #333;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
     }
 
     .container {
-      max-width: 500px;
       background: #ffffff;
-      color: #333;
-      padding: 30px;
-      margin: auto;
+      max-width: 500px;
+      width: 100%;
+      padding: 30px 40px;
       border-radius: 12px;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
 
     h2 {
       text-align: center;
-      color: #2e7d32;
-      margin-bottom: 25px;
+      color: #4CAF50;
+      margin-bottom: 20px;
     }
 
     label {
       font-weight: bold;
-      margin-bottom: 8px;
       display: block;
+      margin-bottom: 6px;
     }
 
     input[type="email"] {
       width: 100%;
       padding: 12px;
       margin-bottom: 20px;
-      border-radius: 6px;
       border: 1px solid #ccc;
+      border-radius: 6px;
       font-size: 16px;
     }
 
     input[type="submit"] {
-      background-color: #2e7d32;
+      background-color: #4CAF50;
       color: white;
-      padding: 12px;
-      width: 100%;
+      padding: 12px 20px;
       font-size: 16px;
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      width: 100%;
+      transition: background-color 0.3s ease;
     }
 
     input[type="submit"]:hover {
-      background-color: #1b5e20;
+      background-color: #43a047;
     }
 
     .code-display {
-      font-size: 36px;
-      color: #388e3c;
+      font-size: 30px;
+      color: #2e7d32;
       text-align: center;
       margin-top: 20px;
+      font-weight: bold;
     }
 
     .error {
-      color: red;
+      color: #d32f2f;
       text-align: center;
       margin-top: 20px;
+      font-weight: bold;
+    }
+
+    .email-info {
+      text-align: center;
+      margin-top: 10px;
+      font-style: italic;
+      color: #555;
     }
 
     .instructions {
+      margin-top: 50px;
       max-width: 900px;
       background: #ffffff;
-      color: #333;
-      margin: 40px auto;
-      padding: 20px;
+      padding: 25px;
       border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     }
 
     .instructions h3 {
@@ -117,11 +124,14 @@ HTML_FORM = """
       padding-left: 20px;
     }
 
+    .instructions li {
+      margin-bottom: 10px;
+    }
+
     .instructions img {
       max-width: 100%;
-      height: auto;
-      margin-top: 10px;
       border-radius: 10px;
+      margin: 10px 0;
     }
 
     #loading {
@@ -133,12 +143,6 @@ HTML_FORM = """
     #loading img {
       width: 40px;
     }
-
-    .email-info {
-      text-align: center;
-      margin-top: 10px;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
@@ -146,8 +150,8 @@ HTML_FORM = """
   <div class="container">
     <h2>Redeem Your Access Code</h2>
     <form method="POST" id="redeem-form">
-      <label for="email">Your @mantapnet.com Email:</label>
-      <input type="email" name="email" placeholder="contoh@mantapnet.com" required>
+      <label for="email">Enter your @mantapnet.com email:</label>
+      <input type="email" name="email" placeholder="example@mantapnet.com" required>
       <input type="submit" value="Get Code">
 
       <div id="loading">
@@ -157,7 +161,7 @@ HTML_FORM = """
     </form>
 
     {% if email %}
-      <div class="email-info">Entered: {{ email }}</div>
+      <div class="email-info">Entered email: {{ email }}</div>
     {% endif %}
     {% if code %}
       <div class="code-display">{{ code }}</div>
@@ -169,14 +173,14 @@ HTML_FORM = """
   <div class="instructions">
     <h3>How to Redeem</h3>
     <ol>
-      <li>On TV: Click <b>[I'm Travelling/Saya Sedang Mengembara]</b> → <b>[Send Email]</b></li>
-      <li>On Phone/PC: Click <b>[Watch Temporary]</b> → <b>[Send Email]</b></li>
-      <li>Enter your <b>@mantapnet.com</b> email above.</li>
-      <li>Click <b>Get Code</b> and wait for retrieval.</li>
+      <li>On TV: Click <strong>[I'm Travelling/Saya Sedang Mengembara]</strong> → <strong>[Send Email]</strong></li>
+      <li>On Phone/PC: Click <strong>[Watch Temporary]</strong> → <strong>[Send Email]</strong></li>
+      <li>Enter your <strong>@mantapnet.com</strong> email above.</li>
+      <li>Click <strong>Get Code</strong> and wait a few seconds.</li>
     </ol>
-    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px;">
-      <img src="/tv.png" alt="TV Instructions" width="400">
-      <img src="/fon.png" alt="Phone Instructions" width="400">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 20px;">
+      <img src="/tv.png" alt="TV Screenshot" width="400">
+      <img src="/fon.png" alt="Phone Screenshot" width="400">
     </div>
   </div>
 
