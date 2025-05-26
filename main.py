@@ -147,7 +147,7 @@ HTML_FORM = """
     <h2>Redeem Your Access Code</h2>
     <form method="POST" id="redeem-form">
       <label for="email">Your @mantapnet.com Email:</label>
-      <input type="email" name="email" placeholder="example@mantapnet.com" required>
+      <input type="email" name="email" placeholder="contoh@mantapnet.com" required>
       <input type="submit" value="Get Code">
 
       <div id="loading">
